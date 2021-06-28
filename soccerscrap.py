@@ -39,6 +39,20 @@ leagues = {
 }
 
 
+class Error(Exception):
+    '''
+        Base class for other exceptions.
+    '''
+    pass
+
+
+class NotInSeason(Error):
+    '''
+        Raised when trying to get data from off season.
+    '''
+    pass
+
+
 class SoccerScrap:
 
     url_league = ""
@@ -46,11 +60,50 @@ class SoccerScrap:
     def __init__(self):
         pass
 
-    def set_league(self, league: str):
+    def set_league(self, league: str) -> None:
         '''
             Choose which league to find data in.
         '''
         self.url_league = leagues[league]
+
+        return None
+
+    def fixtures(self) -> pd.DataFrame:
+        '''
+            Find upcoming fixtures of the league.
+        '''
+
+        url = f"https://www.soccerstats.com/latest.asp?league={self.url_league}"
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        try:
+            # Finding table of goals
+            table = soup.find('div', {'class': 'eight columns'}).find(
+                'table', {'id': 'btable'})
+
+            # Headers
+            headers = ['Date', 'Home Team', 'Away Team']
+
+            # Data
+            data = []
+            rows = table.find_all('tr', {'class': 'odd'})
+            for row in rows:
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+                data.append(cols)
+
+            for sublist in data:
+                del sublist[2]
+                del sublist[-1]
+
+            df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        except ValueError:
+            raise NotInSeason(
+                "Unable to retrive fixtures. Check season start date.")
+
+        return df
 
     def total_goals(self, table_data: str) -> pd.DataFrame:
         '''
@@ -111,6 +164,6 @@ class SoccerScrap:
 
 
 test = SoccerScrap()
-test.set_league('J1 League')
-result = test.total_goals('away')
+test.set_league('La Liga')
+result = test.total_goals('total')
 print(result)

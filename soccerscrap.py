@@ -105,6 +105,39 @@ class SoccerScrap:
 
         return df
 
+    def table(self) -> pd.DataFrame:
+        '''
+            Retrieves current league table.
+        '''
+        url = f"https://www.soccerstats.com/latest.asp?league={self.url_league}"
+
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        # Finding table of goals
+        table = soup.find('table', {'id': 'btable', 'cellpadding': "2"})
+
+        # Headers
+        th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+        headers = [ele.text.strip() for ele in th_rows]
+        headers[0] = 'Pos'
+        headers[1] = 'Team'
+        headers = headers[0:10]
+
+        # Data
+        data = []
+        rows = table.find_all('tr', {'class': 'odd'})
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        data = [sublist[0:10] for sublist in data]
+
+        df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        return df
+
     def total_goals(self, table_data: str) -> pd.DataFrame:
         '''
             Find avg total goals per match of each team.
@@ -164,6 +197,6 @@ class SoccerScrap:
 
 
 test = SoccerScrap()
-test.set_league('La Liga')
-result = test.total_goals('total')
+test.set_league('Premier League')
+result = test.table()
 print(result)

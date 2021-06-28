@@ -13,11 +13,15 @@ req = requests.get(url)
 soup = BeautifulSoup(req.content, 'html.parser')
 
 # Finding table of goals
-table = soup.find('div', {'class': 'eight columns'}
-                  ).find('table', {'id': 'btable'})
+table = soup.find('table', {'id': 'btable', 'cellpadding': "2"})
 
 # Headers
-headers = ['Date', 'Home Team', 'Away Team']
+th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+headers = [ele.text.strip() for ele in th_rows]
+headers[0] = 'Pos'
+headers[1] = 'Team'
+headers = headers[0:10]
+
 
 # Data
 data = []
@@ -27,10 +31,8 @@ for row in rows:
     cols = [ele.text.strip() for ele in cols]
     data.append(cols)
 
-for sublist in data:
-    del sublist[2]
-    del sublist[-1]
+data = [sublist[0:10] for sublist in data]
 
-print(data)
+
 df = pd.DataFrame(data, columns=headers, dtype='string')
 print(df)

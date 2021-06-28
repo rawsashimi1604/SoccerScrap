@@ -94,7 +94,7 @@ class SoccerScrap:
 
         ** Welcome to SoccerScrap made by Gavin Loo / rawsashimi1604. **
         -----------------------------------------------------------------------
-        Soccerscrap scraps data from soccerstats.com. All data belongs to them.
+        SoccerScrap scraps data from soccerstats.com. All data belongs to them.
         -----------------------------------------------------------------------
 
         It is currently {self.dt_check()}.

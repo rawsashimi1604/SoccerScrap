@@ -8,31 +8,27 @@ import requests  # URL Requests to feed bs4
 # Class instance will be created based on League
 # SoccerScrap(self, league)
 
-url = "https://www.soccerstats.com/latest.asp?league=japan"
+url = "https://www.soccerstats.com/timing.asp?league=japan"
 req = requests.get(url)
 soup = BeautifulSoup(req.content, 'html.parser')
 
 # Finding table of goals
-table = soup.find('table', {'id': 'btable', 'cellpadding': "2"})
+table = soup.find('table', {'cellspacing': "1"})
+table = table.findNext('table', {'cellspacing': '1'})
+table = table.findNext('table', {'cellspacing': '1'})
 
 # Headers
-th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+th_rows = table.find('tr', {'bgcolor': '#d0d0d0'}).find_all('td')
 headers = [ele.text.strip() for ele in th_rows]
-headers[0] = 'Pos'
-headers[1] = 'Team'
-headers = headers[0:10]
 
 
 # Data
 data = []
-rows = table.find_all('tr', {'class': 'odd'})
+rows = table.find_all('tr', {'height': '22'})
 for row in rows:
     cols = row.find_all('td')
     cols = [ele.text.strip() for ele in cols]
     data.append(cols)
-
-data = [sublist[0:10] for sublist in data]
-
 
 df = pd.DataFrame(data, columns=headers, dtype='string')
 print(df)

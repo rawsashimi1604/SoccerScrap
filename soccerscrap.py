@@ -4,7 +4,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 
-
+# Information
 '''
     Information: 
     Soccerscrap scraps data from soccerstats.com. All data belongs to them.
@@ -205,6 +205,89 @@ class SoccerScrap:
 
         return df
 
+    def table_first(self) -> pd.DataFrame:
+        '''
+            Gets league table based on first half scores.
+        '''
+        url = f"https://www.soccerstats.com/halftime.asp?league={self.url_league}"
+
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        # Finding table of goals
+        table = soup.find('table', {'id': 'btable', 'cellpadding': "0"})
+
+        # Headers
+        th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+        headers = [ele.text.strip() for ele in th_rows]
+
+        # Data
+        data = []
+        rows = table.find_all('tr', {'class': 'odd'})
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        df = pd.DataFrame(data, columns=headers, dtype='string')
+        return df
+
+    def table_second(self) -> pd.DataFrame:
+        '''
+            Gets league table based on second half scores.
+        '''
+        url = f"https://www.soccerstats.com/halftime.asp?league={self.url_league}"
+
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        # Finding table of goals
+        table = soup.find(
+            'table', {'id': 'btable', 'cellpadding': "0"}).findNext('table')
+
+        # Headers
+        th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+        headers = [ele.text.strip() for ele in th_rows]
+
+        # Data
+        data = []
+        rows = table.find_all('tr', {'class': 'odd'})
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        df = pd.DataFrame(data, columns=headers, dtype='string')
+        return df
+
+    def table_form(self) -> pd.DataFrame:
+        '''
+            Gets form table of the last 6 matches played.
+        '''
+        url = f"https://www.soccerstats.com/formtable.asp?league={self.url_league}"
+
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        # Finding table of goals
+        table = soup.find(
+            'table', {'id': 'btable', 'cellpadding': "0"}).findNext('table')
+
+        # Headers
+        th_rows = table.find('tr', {'class': 'trow2'}).find_all('th')
+        headers = [ele.text.strip() for ele in th_rows]
+
+        # Data
+        data = []
+        rows = table.find_all('tr', {'class': 'odd'})
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        df = pd.DataFrame(data, columns=headers, dtype='string')
+        return df
+
     def total_goals(self, table_data: str) -> pd.DataFrame:
         '''
             Find avg total goals per match of each team.
@@ -262,9 +345,80 @@ class SoccerScrap:
 
         return df
 
+    def timing_goals(self, table_data: str) -> pd.DataFrame:
+        '''
+            Find time of goals.
+            Format : goals scored - goals conceded
+            table_data = both, home, away
+        '''
+        url = f"https://www.soccerstats.com/timing.asp?league={self.url_league}"
 
-# test = SoccerScrap.from_urlcode('japan')
-# result = test.table()
-# timecheck = test.dt_check()
-# test.status()
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
 
+        if table_data == 'both':
+            # Finding table of goals
+            table = soup.find('table', {'cellspacing': "1"})
+
+            # Headers
+            th_rows = table.find('tr', {'bgcolor': '#d0d0d0'}).find_all('td')
+            headers = [ele.text.strip() for ele in th_rows]
+
+            # Data
+            data = []
+            rows = table.find_all('tr', {'height': '22'})
+            for row in rows:
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+                data.append(cols)
+
+            df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        if table_data == 'home':
+            # Finding table of goals
+            table = soup.find('table', {'cellspacing': "1"})
+            table = table.findNext('table', {'cellspacing': '1'})
+
+            # Headers
+            th_rows = table.find('tr', {'bgcolor': '#d0d0d0'}).find_all('td')
+            headers = [ele.text.strip() for ele in th_rows]
+
+            # Data
+            data = []
+            rows = table.find_all('tr', {'height': '22'})
+            for row in rows:
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+                data.append(cols)
+
+            df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        if table_data == 'away':
+            # Finding table of goals
+            table = soup.find('table', {'cellspacing': "1"})
+            table = table.findNext('table', {'cellspacing': '1'})
+            table = table.findNext('table', {'cellspacing': '1'})
+
+            # Headers
+            th_rows = table.find('tr', {'bgcolor': '#d0d0d0'}).find_all('td')
+            headers = [ele.text.strip() for ele in th_rows]
+
+            # Data
+            data = []
+            rows = table.find_all('tr', {'height': '22'})
+            for row in rows:
+                cols = row.find_all('td')
+                cols = [ele.text.strip() for ele in cols]
+                data.append(cols)
+
+            df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        return df
+
+
+'''
+    Testing Hub
+'''
+# test = SoccerScrap.from_urlcode('england')
+# result = test.timing_goals("both")
+# print(result)

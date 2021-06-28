@@ -13,6 +13,7 @@ import requests
 
 '''
     List of leagues available for scrapping, use these as your class instance variables
+    format: league : urlcode
 '''
 leagues = {
     # ---- English Leagues ----
@@ -56,8 +57,15 @@ class NotInSeason(Error):
     pass
 
 
+class LeagueNotAvailable(Error):
+    '''
+        Raised when trying to get data from an unavailable league.
+    '''
+    pass
+
+
 class SoccerScrap:
-    def __init__(self, url_league, league_name):
+    def __init__(self, url_league, league_name) -> None:
         self.url_league = url_league
         self.league_name = league_name
 
@@ -66,7 +74,13 @@ class SoccerScrap:
         '''
             class method (alternative constructor) to create soccerscrap object from league
         '''
-        url_league = leagues[league]
+        try:
+            url_league = leagues[league]
+
+        except KeyError:
+            raise LeagueNotAvailable(
+                f"Data not available for league : {league}.")
+
         return cls(url_league, league)
 
     @classmethod
@@ -74,11 +88,23 @@ class SoccerScrap:
         '''
             class method (alternative constructor) to create soccerscrap object from urlcode
         '''
-        league_name = leagues.get(url, 'Premier League')
-        return cls(url, league_name)
+        league_name = ""
+
+        found_flag = False
+        for key, value in leagues.items():
+            if url == value:
+                league_name = key
+                found_flag = True
+
+        if found_flag:
+            return cls(url, league_name)
+
+        else:
+            raise LeagueNotAvailable(
+                f"Data not available for urlcode : {url}.")
 
     @staticmethod
-    def dt_check():
+    def dt_check() -> None:
         '''
             Gets the date and time for info printing
         '''
@@ -237,7 +263,8 @@ class SoccerScrap:
         return df
 
 
-test = SoccerScrap.from_urlcode('england')
-result = test.table()
-timecheck = test.dt_check()
-test.status()
+# test = SoccerScrap.from_urlcode('japan')
+# result = test.table()
+# timecheck = test.dt_check()
+# test.status()
+

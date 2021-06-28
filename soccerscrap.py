@@ -197,6 +197,6 @@ class SoccerScrap:
 
 
 test = SoccerScrap()
-test.set_league('Premier League')
+test.set_league('Ligue 2')
 result = test.table()
 print(result)

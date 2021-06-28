@@ -8,6 +8,7 @@ To do list:
 requirements.txt
 
 v0.01 : 28 June 2021
-_ Created basic features
-_ Created basic error logging
-\_ First Version!
+
+- Created basic features
+- Created basic error logging
+- First Version!

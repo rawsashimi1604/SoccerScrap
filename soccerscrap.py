@@ -1,10 +1,13 @@
+from __future__ import annotations
+from datetime import datetime
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 
+
 '''
     Information: 
-    Soccerscrap scraps data from soccerstats.com and stores it in a usable JSON format, or excel file.
+    Soccerscrap scraps data from soccerstats.com. All data belongs to them.
     Made by Gavin Loo / rawsashimi1604
 '''
 
@@ -54,18 +57,56 @@ class NotInSeason(Error):
 
 
 class SoccerScrap:
+    def __init__(self, url_league, league_name):
+        self.url_league = url_league
+        self.league_name = league_name
 
-    url_league = ""
-
-    def __init__(self):
-        pass
-
-    def set_league(self, league: str) -> None:
+    @classmethod
+    def from_league(cls, league: str) -> SoccerScrap:
         '''
-            Choose which league to find data in.
+            class method (alternative constructor) to create soccerscrap object from league
         '''
-        self.url_league = leagues[league]
+        url_league = leagues[league]
+        return cls(url_league, league)
 
+    @classmethod
+    def from_urlcode(cls, url: str) -> SoccerScrap:
+        '''
+            class method (alternative constructor) to create soccerscrap object from urlcode
+        '''
+        league_name = leagues.get(url, 'Premier League')
+        return cls(url, league_name)
+
+    @staticmethod
+    def dt_check():
+        '''
+            Gets the date and time for info printing
+        '''
+        result = datetime.now().strftime("%B %d, %Y %H:%M:%S")
+        return result
+
+    def status(self) -> None:
+        '''
+            Gets current status of class
+        '''
+
+        print(f'''
+
+        ** Welcome to SoccerScrap made by Gavin Loo / rawsashimi1604. **
+        -----------------------------------------------------------------------
+        Soccerscrap scraps data from soccerstats.com. All data belongs to them.
+        -----------------------------------------------------------------------
+
+        It is currently {self.dt_check()}.
+        You are currently using urlcode : {self.url_league}
+        You are currently using league : {self.league_name}
+        Enjoy and have a nice day!
+
+        Here is the current league table ....
+        ''')
+
+        print(self.table())
+        print("\n\n\n")
         return None
 
     def fixtures(self) -> pd.DataFrame:
@@ -196,7 +237,7 @@ class SoccerScrap:
         return df
 
 
-test = SoccerScrap()
-test.set_league('Ligue 2')
+test = SoccerScrap.from_urlcode('england')
 result = test.table()
-print(result)
+timecheck = test.dt_check()
+test.status()

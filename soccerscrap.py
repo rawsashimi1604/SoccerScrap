@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import Dict
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
@@ -11,6 +12,7 @@ import requests
     Made by Gavin Loo / rawsashimi1604
 '''
 
+# Dictionary
 '''
     List of leagues available for scrapping, use these as your class instance variables
     format: league : urlcode
@@ -64,11 +66,19 @@ class LeagueNotAvailable(Error):
     pass
 
 
+class TeamNotAvailable(Error):
+    '''
+        Raised when team cannot be found.
+    '''
+    pass
+
+
 class WrongInput(Error):
     '''
         Raised when inputing wrong input into function parameter.
     '''
     pass
+
 
 class SoccerScrap:
     def __init__(self, url_league, league_name) -> None:
@@ -144,6 +154,221 @@ class SoccerScrap:
         print("\n\n\n")
         return None
 
+    def get_team_urls(self) -> dict:
+        '''
+            Gets a list of dicts for URLS for each team's specific page.
+        '''
+        url = url = f"https://www.soccerstats.com/latest.asp?league={self.url_league}"
+
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        links = []
+        rows = soup.find('table', {'id': 'btable', 'cellpadding': "2"}).find_all('tr' , {'class' : "odd"})
+        for row in rows:
+            team = row.find('td', {'align' : 'left'}).find('a').text
+            link = "https://www.soccerstats.com/" + row.find('td', {'align' : 'left'}).find('a')['href']
+            links.append({"team" : team, "url" : link})
+
+        return links
+
+    def team_players(self, team: str) -> pd.DataFrame:
+        '''
+            Find team players for specific team
+        '''
+        list_teams = self.get_team_urls()
+
+        def team_url(n_team):
+            counter = 0
+            for dicts in list_teams:
+                if dicts['team'] == n_team:
+                    return list_teams[counter]
+
+                counter += 1
+            raise TeamNotAvailable("Team cannot be found.")
+        
+        result = team_url(team)
+        url = result['url']
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        table = soup.find('table', {'id' : 'btable', 'width' : '100%', 'cellspacing' : '0', 'cellpadding' : '2', 'border' : '0'})
+
+        t_headers = table.find('tr', {'class' : 'trow1'}).find_all('th')
+        headers = [ele.text.strip() for ele in t_headers]
+        headers.pop(0)
+        headers[0] = "Kit Number"
+
+        data = []
+        t_rows = table.find_all('tr', {'class' : 'odd'})
+        for row in t_rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            cols.pop(1)
+            data.append(cols)
+
+        df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        return df
+
+    def team_results(self, team: str) -> pd.DataFrame:
+        '''
+            Find team results for specific team
+        '''
+        list_teams = self.get_team_urls()
+
+        def team_url(n_team):
+            counter = 0
+            for dicts in list_teams:
+                if dicts['team'] == n_team:
+                    return list_teams[counter]
+
+                counter += 1
+            raise TeamNotAvailable("Team cannot be found.")
+
+        result = team_url(team)
+        url = result['url']
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        table = soup.find('table', {'cellspacing' : '0', 'cellpadding' : '0', 'bgcolor' : '#cccccc', 'width': '100%'})
+        headers = ["Date", "Home", "Score", "Away"]
+        data = []
+        selector = [0, 1, 2, -6]
+        t_rows = table.find_all('tr', {'height' : '28'})
+        for row in t_rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            cols[2] = cols[2].split('\n')[0]
+            cols = [cols[x] for x in selector]
+            data.append(cols)
+
+        data.pop(0)
+
+        df = pd.DataFrame(data, columns=headers, dtype="string")
+
+        return df
+
+    def team_goals(self, team: str) -> pd.DataFrame:
+        '''
+            Find team goals for specific team
+
+        '''
+        list_teams = self.get_team_urls()
+
+        def team_url(n_team):
+            counter = 0
+            for dicts in list_teams:
+                if dicts['team'] == n_team:
+                    return list_teams[counter]
+
+                counter += 1
+            raise TeamNotAvailable("Team cannot be found.")
+
+        result = team_url(team)
+        url = result['url']
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        table = soup.find('table', {'cellspacing' : '0', 'cellpadding' : '0', 'bgcolor' : '#cccccc', 'width': '99%'})
+        t_headers = table.find('tr', {'bgcolor' : '#666666'}).find_all('td')
+
+        headers = [ele.text.strip() for ele in t_headers]
+
+        data = []
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        data.pop(0)
+        data.pop(0)
+        data.pop(-1)
+
+        df = pd.DataFrame(data, columns=headers, dtype="string")
+        return df
+
+    def team_total_goals(self, team: str) -> pd.DataFrame:
+        '''
+            Find team total goals for specific team
+
+        '''
+        list_teams = self.get_team_urls()
+
+        def team_url(n_team):
+            counter = 0
+            for dicts in list_teams:
+                if dicts['team'] == n_team:
+                    return list_teams[counter]
+
+                counter += 1
+            raise TeamNotAvailable("Team cannot be found.")
+
+        result = team_url(team)
+        url = result['url']
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        table = soup.find('table', {'cellspacing' : '0', 'cellpadding' : '0', 'bgcolor' : '#cccccc', 'width': '99%'}).findNext('table').findNext('table')
+        t_headers = table.find('tr', {'bgcolor' : '#666666'}).find_all('td')
+
+        headers = [ele.text.strip() for ele in t_headers]
+
+        data = []
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        data.pop(0)
+        data.pop(0)
+        data.pop(-1)
+
+        df = pd.DataFrame(data, columns=headers, dtype="string")
+        return df
+
+    def team_patterns(self, team: str) -> pd.DataFrame:
+        '''
+            Find goal scoring patterns for specific team
+
+        '''
+        list_teams = self.get_team_urls()
+
+        def team_url(n_team):
+            counter = 0
+            for dicts in list_teams:
+                if dicts['team'] == n_team:
+                    return list_teams[counter]
+
+                counter += 1
+            raise TeamNotAvailable("Team cannot be found.")
+
+        result = team_url(team)
+        url = result['url']
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+
+        table = soup.find('table', {'cellspacing' : '0', 'cellpadding' : '0', 'bgcolor' : '#cccccc', 'width': '99%'}).findNext('table')
+        t_headers = table.find('tr', {'bgcolor' : '#666666'}).find_all('td')
+
+        headers = [ele.text.strip() for ele in t_headers]
+
+        data = []
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all('td')
+            cols = [ele.text.strip() for ele in cols]
+            data.append(cols)
+
+        data.pop(0)
+        data.pop(0)
+        data.pop(-1)
+
+        df = pd.DataFrame(data, columns=headers, dtype="string")
+        return df
+    
     def fixtures(self) -> pd.DataFrame:
         '''
             Find upcoming fixtures of the league.
@@ -190,7 +415,7 @@ class SoccerScrap:
         req = requests.get(url)
         soup = BeautifulSoup(req.content, 'html.parser')
 
-        # Finding table of goals
+        # Finding table
         table = soup.find('table', {'id': 'btable', 'cellpadding': "2"})
 
         # Headers

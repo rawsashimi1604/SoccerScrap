@@ -55,7 +55,7 @@ myObj = SoccerScrap.from_urlcode("england") # To get Premier League Data.
 myObj.status() # Return current status of league.
 ```
 
-#### Class Methods
+#### Methods
 @classmethod from_league(*cls, league: str) -> **SoccerScrap**:
 ```python
  # Class method constructor to create SoccerScrap object from League Name.
@@ -78,6 +78,36 @@ myObj.status() # Return current status of league.
 ```python
 # Gets the current date and time.
 # Output : July 12, 2021 14:13:47
+```
+
+method get_team_urls(*self*) -> dict:
+```
+# Gets a list of dicts for URLS for each team's corresponding page.
+```
+
+method team_players(*self, team: str) -> pd.DataFrame:
+```
+# Returns team players for specific team
+```
+
+method team_results(*self, team: str) -> pd.DataFrame:
+```
+# Returns team results for specific team
+```
+
+method team_goals(*self, team: str) -> pd.DataFrame:
+```
+# Find team goals for specific team
+```
+
+method team_total_goals(*self, team: str) -> pd.DataFrame:
+```
+# Find team total goals for specific team
+```
+
+method team_patterns(*self, team: str) -> pd.DataFrame:
+```
+# Find goal scoring patterns for specific team
 ```
 
 method status(*self*) -> **None**:

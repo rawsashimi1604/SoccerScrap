@@ -64,10 +64,19 @@ class LeagueNotAvailable(Error):
     pass
 
 
+class WrongInput(Error):
+    '''
+        Raised when inputing wrong input into function parameter.
+    '''
+    pass
+
 class SoccerScrap:
     def __init__(self, url_league, league_name) -> None:
         self.url_league = url_league
         self.league_name = league_name
+
+    def __repr__(self) -> str:
+        return f"League : {self.league_name}, URLCODE : {self.url_league}"
 
     @classmethod
     def from_league(cls, league: str) -> SoccerScrap:
@@ -315,7 +324,7 @@ class SoccerScrap:
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
 
-        if table_data == 'home':
+        elif table_data == 'home':
             th_row = home.find('thead').find('tr').find_all('th')
             headers = [ele.text.strip() for ele in th_row]
 
@@ -329,7 +338,7 @@ class SoccerScrap:
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
 
-        if table_data == 'away':
+        elif table_data == 'away':
             th_row = away.find('thead').find('tr').find_all('th')
             headers = [ele.text.strip() for ele in th_row]
 
@@ -342,6 +351,10 @@ class SoccerScrap:
                 data.append(cols)
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
+
+        else:
+            raise WrongInput("Please check your input and only use ('total', 'home' or 'away').")
+
 
         return df
 
@@ -374,7 +387,7 @@ class SoccerScrap:
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
 
-        if table_data == 'home':
+        elif table_data == 'home':
             # Finding table of goals
             table = soup.find('table', {'cellspacing': "1"})
             table = table.findNext('table', {'cellspacing': '1'})
@@ -393,7 +406,7 @@ class SoccerScrap:
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
 
-        if table_data == 'away':
+        elif table_data == 'away':
             # Finding table of goals
             table = soup.find('table', {'cellspacing': "1"})
             table = table.findNext('table', {'cellspacing': '1'})
@@ -413,6 +426,9 @@ class SoccerScrap:
 
             df = pd.DataFrame(data, columns=headers, dtype='string')
 
+        else:
+            raise WrongInput("Please check your input and only use ('both', 'home' or 'away').")
+            
         return df
 
 
